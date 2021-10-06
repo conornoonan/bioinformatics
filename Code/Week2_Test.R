@@ -62,19 +62,6 @@ maxmin_1 <- function(x){
   
 }
 
-#alternative function 
-
-
-maxmin_2 <- function(x){
-  #sorting vector by descending order and picking the first value
-  x_max <- sort(x, decreasing = TRUE)
-  max_value <- x_max[1]
-  #calculating the number of values in the vector and using that to select the last value
-  min_value <- x_max[length(x)]
-  max_min <- c("Maximum Value" = max_value, "Minimum Value" = min_value)
-  return(max_min)
-}
 
 
 maxmin_1(random_vec)
-maxmin_2(random_vec)
