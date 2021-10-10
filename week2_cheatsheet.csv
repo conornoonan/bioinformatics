@@ -1,0 +1,5 @@
+Call,Function
+rm(list = ls()),Clear R's memory
+rnorm(),Random numbers from a uniform distribution
+"install.package(""package name"")",Install package 
+"library(""package name"")",Load installed packages
