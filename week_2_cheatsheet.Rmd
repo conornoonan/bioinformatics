@@ -22,7 +22,7 @@ In this lesson we covered Git, GitHub, and their integration into RStudio for th
 
 
 ```{r, out.width = "600px", echo=FALSE, fig.cap= "_Fig. 1: GitHub Logo_"}
-knitr::include_graphics("github-logo.jpg")
+knitr::include_graphics("Images/github-logo.jpg")
 ```
 
 GitHub is an online repository (i.e. a storage space) which facilitates the storage and sharing of code. GitHub is the front end of Git, which is the underlying code which does all of the work. GitHub is just a user-friendly interface.  
@@ -70,13 +70,13 @@ Branching and version control are not the same thing.
 A branch represents an independent line of development. Branches serve as an abstraction for the edit/stage/commit process. When you make a Github repository you create the Master branch - this is the main working branch of the repository. You can make and commit changes to this master branch as we did above.  
 
 ```{r, out.width = "300px", echo=FALSE, fig.cap= "_Fig.4: GitHub profile branch details._"}
-knitr::include_graphics("branching.png")
+knitr::include_graphics("Images/branching.png")
 ```
 
 Branching is a way of having multiple parallel repositories which you can work on independently, and then merge the changes back together to form a single repository again. 
 
 ```{r, out.width = "600px", echo=FALSE, fig.cap= "_Fig.5: Branching explained._"}
-knitr::include_graphics("branching1.png")
+knitr::include_graphics("Images/branching1.png")
 ```
 
 
