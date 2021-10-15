@@ -21,8 +21,8 @@ lapply(libraries, library, character.only = TRUE)
 In this lesson we covered Git, GitHub, and their integration into RStudio for the purpose of sharing and copying publicly-available code. 
 
 
-```{r, out.width = "600px", echo=FALSE, fig.cap= "_Fig. 1: github-logo"}
-knitr::include_graphics("GitHub-logo.png")
+```{r, out.width = "900px", echo=FALSE, fig.cap= "_Fig. 1: GitHub logo_"}
+knitr::include_graphics("images/github-logo.jpg")
 ```
 
 GitHub is an online repository (i.e. a storage space) which facilitates the storage and sharing of code. GitHub is the front end of Git, which is the underlying code which does all of the work. GitHub is just a user-friendly interface.  
@@ -66,21 +66,21 @@ plot(pressure)
 # Branching and Version Control
 Branching and version control are not the same thing.
 
-##Branching
+## Branching
 A branch represents an independent line of development. Branches serve as an abstraction for the edit/stage/commit process. When you make a Github repository you create the Master branch - this is the main working branch of the repository. You can make and commit changes to this master branch as we did above.  
 
 ```{r, out.width = "300px", echo=FALSE, fig.cap= "_Fig.4: GitHub profile branch details._"}
-knitr::include_graphics("branching.png")
+knitr::include_graphics("images/branching.png")
 ```
 
 Branching is a way of having multiple parallel repositories which you can work on independently, and then merge the changes back together to form a single repository again. 
 
 ```{r, out.width = "600px", echo=FALSE, fig.cap= "_Fig.5: Branching explained._"}
-knitr::include_graphics("branching1.png")
+knitr::include_graphics("images/branching1.png")
 ```
 
 
-##Version Control
+## Version Control
 Version control is the ability to move back to an earlier version of our repository. You can move back to a point on the current branch you are working on or to a different branch altogether. In summary, you can move back to any point at which you made a `commit`. This is why it's important to `commit` selectively. 
 
 # Functions
