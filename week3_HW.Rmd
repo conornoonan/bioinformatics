@@ -1,0 +1,72 @@
+---
+title: "Week 3 Homework"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+libraries <- c("tidyverse", "shiny", "excelR", "readxl", "knitr", "vroom")
+lapply(libraries, library, character.only = TRUE)
+```
+
+# Summary 
+
+This document is broken down into subsections corresponding to the tasks given for homework. The primary task is two write an R Markdown file which contains code that carries out certain tasks.
+
+## Task 1
+
+Load `to_sort_pop_1.csv` and `to_sort_pop_1.csv` from [bioinformatics_data](https://github.com/chrit88/Bioinformatics_data/tree/master/Workshop%203) provided by Dr. Chris Clements on github.
+
+```{r include=TRUE}
+
+tsp1 <- vroom("https://raw.githubusercontent.com/chrit88/Bioinformatics_data/master/Workshop%203/to_sort_pop_1.csv")
+head(tsp1)
+
+tsp2 <- vroom("https://raw.githubusercontent.com/chrit88/Bioinformatics_data/master/Workshop%203/to_sort_pop_2.csv")
+head(tsp2)
+
+```
+
+## Task 2
+
+Using a `tidyverse` function, join both of these data together into a single tibble.
+
+```{r include=TRUE}
+tsp_joined <- full_join(tsp1, tsp2)
+head(tsp_joined)
+
+```
+
+## Task 3
+
+Reshape the tibble from wide to long format and include 3 new columns.
+
+```{r include=TRUE}
+
+# take the tsp_long tibble and filter it into the pivot_longer function to convert from wide to long format
+
+tsp_long <- tsp_joined %>%
+                
+# specifying the column titles for the converted tibble
+  
+                pivot_longer(cols = -c(species:tertiary_threat),
+                             
+                             # adding two new column titles under which unmatched character strings and our pop number will be
+                             # assigned to
+                             
+                             names_to = c("population", "date"),
+                             
+                             # adding new column under which unmatched values will be assigned to
+                             
+                             values_to = "abundance",
+                             
+                             # using regular expressions to search for population number and date in character strings. The 
+                             # brackets are the capture groups, and each group is assigned to one of the new columns.
+                             names_pattern = "pop_(1|2)_(.*)",
+                             )
+head(tsp_long)
+
+```
+## Author
+
+Conor Noonan
