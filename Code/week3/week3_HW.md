@@ -11,7 +11,7 @@ which contains code that carries out certain tasks.
 
 Load `to_sort_pop_1.csv` and `to_sort_pop_1.csv` from
 [bioinformatics\_data](https://github.com/chrit88/Bioinformatics_data/tree/master/Workshop%203)
-on github.
+provided by Dr. Chris Clements on github.
 
 ``` r
 tsp1 <- vroom("https://raw.githubusercontent.com/chrit88/Bioinformatics_data/master/Workshop%203/to_sort_pop_1.csv")
@@ -121,7 +121,7 @@ head(tsp_joined)
 
 ## Task 3
 
-Reshape the tibble from wide to long format and include 3 new columns
+Reshape the tibble from wide to long format and include 3 new columns.
 
 ``` r
 # take the tsp_long tibble and filter it into the pivot_longer function to convert from wide to long format
