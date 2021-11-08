@@ -1,0 +1,337 @@
+---
+title: "Week 6 Homework"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+libraries <- c("tidyverse", "knitr", "vroom", "lubridate","devtools", "patchwork", "multcomp", "countrycode", "wbstats")
+lapply(libraries, library, character.only = TRUE)
+install_github("thomasp85/patchwork")
+
+```
+
+# Homework Part 1 - Tokyo Olympics
+
+For the first part of today's homework, I'll be looking at whether there is any significant effect of a country’s GDP on their position in the Tokyo Olympics medal table. The data used was obtained from GitHub user `chrit88` [here]("https://github.com/chrit88/Bioinformatics_data/tree/master/Workshop%205").
+
+
+## Task 1
+
+Find out how to get GDP for the countries. Firstly, let's import the dataset.
+
+```{r include=TRUE}
+
+tokyo <- vroom("https://raw.githubusercontent.com/chrit88/Bioinformatics_data/master/Workshop%205/Tokyo%202021%20medals.csv")
+
+## adding country codes
+
+tokyo$code <- countrycode(tokyo$Country,
+  origin = "country.name",
+  destination = "iso3c")
+
+## manually adding China
+
+tokyo$code[2] <- "CHN"
+
+head(tokyo)
+```
+
+The World Bank provides data on GDP which can be accessed through the wbstats package. Let's get this data and filter to include the latest data (2020).
+
+```{r include=TRUE}
+
+gdp <-  wb_data("NY.GDP.MKTP.CD")
+
+gdp <- gdp %>%
+  filter(date == "2020") %>%
+  rename("code" = "iso3c", "gdp" = "NY.GDP.MKTP.CD")
+
+```
+
+## Task 2
+
+Now that the data is loaded in, let's merge the tables together based on the country code.
+
+```{r include=TRUE}
+
+tokyo_gdp <- left_join(tokyo, gdp, by="code")
+
+head(tokyo_gdp)
+```
+
+China was manually changed as it was recognized as Taiwan in the Olympic Table. 
+
+In order to compare GDP to position in the table, we're going to make a column which contains the indexes of the rows.
+
+```{r include=TRUE}
+
+tokyo_gdp$position <- as.numeric(rownames(tokyo_gdp))
+
+## remove rows that GDP couldn't be obtained for
+
+tokyo_gdp <- tokyo_gdp %>%
+  filter(!is.na(gdp))
+
+```
+
+## Task 3
+
+We now want to visualise the relationship between GDP and position in the table.
+
+```{r include=TRUE}
+
+p1.1 <- ggplot(tokyo_gdp, aes(x =gdp, y = position)) +
+  geom_point() +
+  ggtitle("Relationship between GDP and Position in the Olympic Table") +
+  theme_bw() +
+  scale_y_reverse(breaks = c(1, 10, 20, 30, 40, 50, 60, 70, 80, 90)) +
+  scale_x_reverse() 
+
+## Makeing a plot using the log scale
+
+p1.2 <- ggplot(tokyo_gdp, aes(x =log(gdp), y = position)) +
+  geom_point() +
+  ggtitle("Relationship between log(GDP) and Position in the Olympic Table") +
+  theme_bw() +
+  scale_y_reverse(breaks = c(1, 10, 20, 30, 40, 50, 60, 70, 80, 90)) +
+  scale_x_reverse() 
+
+p1.1 + p1.2
+```
+
+## Task 4
+
+Fit an appropriate GLM to the data and check its assumptions.
+
+```{r include=TRUE}
+
+#===================================================
+#         MOD1
+#===================================================
+mod1 <- glm(position ~ log(gdp),
+            data = tokyo_gdp,
+            family = "gaussian")
+
+tokyo_gdp$pred_gaussian <- predict(mod1,
+                                    type="response")
+
+tokyo_gdp$resid_gaussian <- resid(mod1)
+
+##Checking the distribution of the residuals to see if they fit the normal distribution
+
+plot_mod1 <- ggplot(tokyo_gdp, aes(x = resid_gaussian)) +
+  geom_histogram() +
+  theme_minimal() +
+  ggtitle("Histogram of residuals (gaussian with identity link)")
+
+plot_mod1
+#===================================================
+#         MOD2
+#===================================================
+
+mod2 <- glm(position ~ gdp,
+            data = tokyo_gdp,
+            family = gaussian(link = "log"))
+
+tokyo_gdp$pred_gaussian_log <- predict(mod2,
+                                    type="response")
+
+tokyo_gdp$resid_gaussian_log <- resid(mod2)
+
+##Checking the distribution of the residuals to see if they fit the normal distribution
+
+plot_mod2 <- ggplot(tokyo_gdp, aes(x = resid_gaussian_log)) +
+  geom_histogram() +
+  theme_minimal() +
+  ggtitle("Histogram of residuals (gaussian with log link)")
+
+plot_mod2
+
+
+##compare the models
+AIC_mods <- AIC(mod1,
+                mod2)
+
+## rank them by AIC using the order() function
+AIC_mods[order(AIC_mods$AIC),]
+
+```
+
+According to the AIC criterion, there appears to be no significant difference between the two models. The residuals all appear to follow a normal distribution.
+
+Lets graph the two models.
+
+```{r include=TRUE}
+
+#===========================
+#     Plot for Model 1
+#===========================
+
+
+p2 <- ggplot(tokyo_gdp, aes(x = log(gdp), y = position)) +
+  geom_point() +
+  geom_line() +
+  theme_bw() +
+  ylab("Position") +
+  xlab("Log GDP") +
+  scale_y_reverse(breaks = c(1, 10, 20, 30, 40, 50, 60, 70, 80, 90)) +
+  scale_x_reverse() 
+
+##add in a line of the predicted values from the model
+p2 <- p2 + geom_smooth(data=tokyo_gdp,
+                       method="glm",
+                       method.args = list(family = "gaussian"),
+                       formula = y ~ x,
+                       col = "dodgerblue",
+                       fill = "lightblue")
+
+p2 <- p2 +geom_segment(aes(xend= log(gdp), yend = pred_gaussian),
+                       col = "red")
+
+## add a title
+p2 <- p2 + ggtitle("Fitted Model (Gaussian with Ddentity Link)")
+
+
+#===========================
+#     Plot for Model 2
+#===========================
+
+
+p3 <- ggplot(tokyo_gdp, aes(x = gdp, y = position)) +
+  geom_point()+
+  ylab("Position") +
+  xlab("GDP") 
+
+p3 <- p3 + geom_smooth(data=tokyo_gdp,
+                       method="glm",
+                       method.args = list(family = gaussian(link="log")),
+                       formula = y ~ x,
+                       col = "dodgerblue",
+                       fill = "lightblue") +
+                        ggtitle("Fitted Model (With Log Link)") 
+
+## Comparing the two
+
+p2 + p3
+
+```
+```{r include=TRUE}
+summary(mod1)
+
+summary(mod2)
+```
+
+Looking at the summary tables and plots, it looks like there is a significant relationship between GDP and log(GDP) against position on the Olympic Table. Both relationships show that there is a negative relationship between the two, so as you decrease GDP there is a corresponding decrease in your position on the table.
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+# Homework Part 2 - Iris with Multiple Predictors
+
+## Task 1
+
+Load in the Iris data and visualize the relationship between petal length and petal width.
+
+```{r include=TRUE}
+
+## visualize the data
+
+irplot <- ggplot(data = iris, aes(x= Petal.Length, y=Petal.Width, col=Species)) +
+  geom_point() +
+  xlab("Petal Length") +
+  ylab("Petal WIdth") 
+
+
+
+## see if data conforms to gaussian
+
+gaus_plot <- ggplot(iris, aes(x=Petal.Length, fill=Species)) +
+  geom_histogram(binwidth=.1, alpha=.5, position="identity")
+
+irplot + gaus_plot
+```
+
+## Tasks 2 - 5
+
+The data appears to have a strong positive relationship between the independent and dependent variables. The data also conforms to the normal distribution. Because of this, I'm going to use a GLM and assume the residuals follow a normal distribution. 
+
+```{r include=TRUE}
+
+#==========================================
+#       MOD1
+#==========================================
+
+## make a model
+
+irmod1 <- glm(Petal.Width ~ Petal.Length,
+            data = iris,
+            family = "gaussian")
+
+## calculate the residuals
+
+iris$pred_gaussian <- predict(irmod1,
+                                   type="response")
+
+iris$resid_gaussian <- resid(irmod1)
+
+
+## plot the residuals
+
+resid_plot1 <- ggplot(iris, aes(x = resid_gaussian)) +
+  geom_histogram(fill="goldenrod") +
+  theme_minimal() +
+  ggtitle("Histogram of residuals")
+
+## plot the model
+
+irplot1 <- irplot + geom_smooth(data=iris,
+                       method="glm",
+                       method.args = list(family = "gaussian"),
+                       formula = y ~ x,
+                       col = "dodgerblue",
+                       fill = "lightblue")
+irplot1
+
+summary(irmod1)
+```
+
+This model appears to fit well. The residuals follow a normal distribution, the diagnostic plots don't raise any flags, and there is a strong relationship between the two variables.
+
+## Task 6
+
+Now lets see if the effect of petal length on petal width varies across the different species.
+
+```{r include=TRUE}
+
+irmod2 <- glm(Petal.Width ~ Petal.Length*Species,
+            data = iris,
+            family = "gaussian")
+
+irmod3 <- glm(Petal.Width ~ Petal.Length*Species,
+            data = iris,
+            family = gaussian(link = "inverse"))
+
+
+##compare the models
+AIC_mods <- AIC(irmod2,
+                irmod3)
+
+## rank them by AIC using the order() function
+AIC_mods[order(AIC_mods$AIC),]
+
+## plotting three different lines
+
+iris_split <- ggplot(iris, aes(x=Petal.Length, y=Petal.Width, col=Species)) +
+  geom_point() +
+  geom_smooth(method = "glm",
+              method.args = list(family = "gaussian"),
+              formula = y ~ x)+
+              xlab("Petal Length") +
+              ylab("Petal WIdth")
+
+iris_split
+
+summary(irmod2)
+```
+
